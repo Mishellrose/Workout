@@ -42,9 +42,38 @@ def get_current_user(
     )
 
     token = verify_access_token(token, credentials_exception)
+    if token.user_type != "user":
+        raise HTTPException(status_code=403, detail="Not authorized as user")
 
     user = db.query(models.User).filter(models.User.id == token.id).first()
     if not user:
         raise credentials_exception
 
     return user
+
+def get_current_admin(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Not authorized as admin",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: int = payload.get("user_id")
+        user_type: str = payload.get("user_type")
+
+        if user_id is None or user_type != "admin":
+            raise credentials_exception
+
+    except JWTError:
+        raise credentials_exception
+
+    admin = db.query(models.Admin).filter(models.Admin.id == user_id).first()
+    if admin is None:
+        raise credentials_exception
+
+    return admin
