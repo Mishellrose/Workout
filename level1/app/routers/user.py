@@ -1,4 +1,4 @@
-from app import schemas,models
+from app import schemas,models,oauth2
 from app.database import get_db
 from sqlalchemy.orm import Session
 from fastapi import Depends, status, APIRouter,HTTPException
@@ -22,15 +22,16 @@ def create_user(dets:schemas.UserCreate, db:Session=Depends(get_db)):
   
 
 @router.get("/get")
-def get_all_users(db:Session= Depends(get_db)):
+def get_all_users( db:Session= Depends(get_db)):
     users=db.query(models.User).all()
     print(users)
     return users
 
 
-@router.get("/get/{user_id}", status_code=status.HTTP_200_OK)
-def get_user_by_id(user_id: int, db:Session= Depends(get_db)):
+@router.get("/get/{user_id}", status_code=status.HTTP_200_OK, response_model=schemas.RegisterUserOut)
+def get_user_by_id(user_id: int, current_user= Depends(oauth2.get_current_user),db:Session= Depends(get_db)):
     user=db.query(models.User).filter(models.User.id == user_id).first()
+
     if not user:
         raise HTTPException(status_code=404, detail="No user with the id")
     print(user)
@@ -58,7 +59,10 @@ def update_user(
     return user
 
 @router.delete("/delete/{user_id}", status_code=status.HTTP_200_OK)
-def delete_user(user_id:int, db:Session = Depends(get_db)):
+def delete_user(user_id:int, current_user= Depends(oauth2.get_current_user), db:Session = Depends(get_db)):
+    if not current_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
     users=db.query(models.User).filter(models.User.id == user_id).first()
     db.delete(users)
     db.commit()
