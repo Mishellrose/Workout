@@ -1,0 +1,9 @@
+2025-12-17 23:50:25,889 | INFO | app | Application started
+2025-12-17 23:50:29,874 | INFO | app | Login attempt for admin with email=lechu@gmail.com
+2025-12-17 23:50:30,434 | INFO | app | Creating access token
+2025-12-17 23:50:30,535 | INFO | app | Access token created successfully
+2025-12-17 23:50:30,535 | INFO | app | Login successful:Access token created for email=lechu@gmail.com
+2025-12-17 23:50:52,435 | INFO | app | Admin authorization started
+2025-12-17 23:50:52,439 | INFO | app | Admin authorized successfully admin_id=5
+2025-12-17 23:50:52,453 | INFO | app | Creating user with email=johnthkuu@gmail.com
+2025-12-17 23:50:52,840 | INFO | app | User created successfully id=10

@@ -16,7 +16,7 @@ def get_all_users( db:Session= Depends(get_db)):
 
 
 @router.get("/get/{user_id}", status_code=status.HTTP_200_OK, response_model=schemas.RegisterUserOut)
-def get_user_by_id(user_id: int, current_user= Depends(oauth2.get_current_user),db:Session= Depends(get_db)):
+def get_user_by_id(user_id: int, current_admin= Depends(oauth2.get_current_admin),db:Session= Depends(get_db)):
     logger.info(f"Get user by id request user_id={user_id}")
     user=db.query(models.User).filter(models.User.id == user_id).first()
 
@@ -26,10 +26,11 @@ def get_user_by_id(user_id: int, current_user= Depends(oauth2.get_current_user),
     logger.info(f"User fetched successfully user_id={user.id}")
     return user
 
-@router.patch("/users/{user_id}")
+@router.patch("/update/{user_id}")
 def update_user(
     user_id: int,
-    user_update: schemas.UpdateUser,
+    user_update: Optional[schemas.UpdateUser],
+    current_admin= Depends(oauth2.get_current_admin),
     db: Session = Depends(get_db)
 ):
     logger.info(f"Update user request user_id={user_id}")
