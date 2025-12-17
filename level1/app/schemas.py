@@ -45,3 +45,4 @@ class AdminOut(BaseModel):
     email: EmailStr
 class DeleteUser(BaseModel):
     user_id: int
+

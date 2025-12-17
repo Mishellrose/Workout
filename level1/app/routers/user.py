@@ -1,8 +1,8 @@
 from app import schemas,models,oauth2
 from app.database import get_db
 from sqlalchemy.orm import Session
-from fastapi import Depends, status, APIRouter,HTTPException
-
+from fastapi import Depends, status, APIRouter,HTTPException,Query
+from typing import Optional
 
 router=APIRouter(prefix="/user")
 
@@ -54,3 +54,47 @@ def delete_user(admin_id: int, user:schemas.DeleteUser, current_admin= Depends(o
     db.commit()
    
     return {"message": "user deleted"}
+
+#FILTERING,PAGINATION,SEARCH
+
+
+@router.get("/filter", status_code=status.HTTP_200_OK)
+def get_users(
+    name: Optional[str] = Query(None, description="Search by name"),
+    email: Optional[str] = Query(None, description="Search by email"),
+    sort_by: Optional[str] = Query(
+        None,
+        enum=["age", "created_at"],
+        description="Field to sort by"
+    ),
+    order: str = Query(
+        "asc",
+        enum=["asc", "desc"],
+        description="Sort order"
+    ),
+    limit: int = Query(10, ge=1),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db)
+):
+    query = db.query(models.User)
+
+    # 🔍 Filtering
+    if name:
+        query = query.filter(models.User.name.ilike(f"%{name}%"))
+
+    if email:
+        query = query.filter(models.User.email.ilike(f"%{email}%"))
+
+    # 🔃 Sorting with direction
+    if sort_by:
+        column = getattr(models.User, sort_by)
+
+        if order == "desc":
+            query = query.order_by(column.desc())
+        else:
+            query = query.order_by(column.asc())
+
+    # 📄 Pagination
+    users = query.offset(offset).limit(limit).all()
+
+    return users
